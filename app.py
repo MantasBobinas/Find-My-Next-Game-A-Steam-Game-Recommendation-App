@@ -72,7 +72,28 @@ review_totals = filtered_games["Total reviews"].replace(0, float("nan"))
 filtered_games["Positive reviews (%)"] = (
     filtered_games["Positive"] / review_totals * 100
 ).round(1)
+min_positive = st.number_input(
+    "Minimum positive reviews (%)",
+    min_value=0,
+    max_value=100,
+    value=0,
+    step=5
+)
 
+if min_positive > 0:
+    filtered_games = filtered_games[
+        filtered_games["Positive reviews (%)"] >= min_positive
+    ]
+min_reviews = st.number_input(
+    "Minimum number of reviews",
+    min_value=0,
+    value=100,
+    step=100
+)
+
+filtered_games = filtered_games[
+    filtered_games["Total reviews"] >= min_reviews
+]
 recommendations = filtered_games.sort_values(
     by="Total reviews",
     ascending=False
