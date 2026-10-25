@@ -3,20 +3,34 @@ import pandas as pd
 import streamlit as st
 
 st.title("Find My Next Game")
-st.write("Explore a sample of the Steam dataset.")
+st.write("Find Steam games that match your genre and budget.")
 
-with open("data/games.csv", encoding="utf-8-sig", newline="") as file:
-    headings = next(csv.reader(file))
+@st.cache_data
+def load_games():
+    with open("data/games.csv", encoding="utf-8-sig", newline="") as file:
+        headings = next(csv.reader(file))
 
-position = headings.index("DiscountDLC count")
-headings[position:position + 1] = ["Discount", "DLC count"]
+    position = headings.index("DiscountDLC count")
+    headings[position:position + 1] = ["Discount", "DLC count"]
 
-games = pd.read_csv(
-    "data/games.csv",
-    header=0,
-    names=headings,
-    nrows=100
-)
+    needed_columns = [
+        "AppID", "Name", "Price", "Genres", "Positive", "Negative"
+    ]
+
+    data = pd.read_csv(
+        "data/games.csv",
+        header=0,
+        names=headings,
+        usecols=needed_columns
+    )
+
+    data = data.dropna(subset=["Name"]).copy()
+
+    return data
+
+
+games = load_games()
+st.write("Games available after cleaning:", len(games))
 
 genre_lists = games["Genres"].fillna("").str.split(",")
 
@@ -53,6 +67,11 @@ filtered_games = filtered_games.copy()
 filtered_games["Total reviews"] = (
     filtered_games["Positive"] + filtered_games["Negative"]
 )
+review_totals = filtered_games["Total reviews"].replace(0, float("nan"))
+
+filtered_games["Positive reviews (%)"] = (
+    filtered_games["Positive"] / review_totals * 100
+).round(1)
 
 recommendations = filtered_games.sort_values(
     by="Total reviews",
@@ -66,7 +85,9 @@ if recommendations.empty:
 else:
     st.subheader("Your game recommendations")
 
-    display_columns = ["Name", "Price", "Genres", "Total reviews"]
+    display_columns = [
+        "Name", "Price", "Genres", "Total reviews", "Positive reviews (%)"
+    ]
 
     st.dataframe(
         recommendations[display_columns],
@@ -74,6 +95,6 @@ else:
     )
 
 st.caption(
-    "Searching the first 100 records. Ranked by total review count. "
-    "Prices are in USD from the dataset snapshot and may differ from current Steam prices."
+    "Ranked by total review count. Prices are in USD from the "
+    "dataset snapshot and may differ from current Steam prices."
 )

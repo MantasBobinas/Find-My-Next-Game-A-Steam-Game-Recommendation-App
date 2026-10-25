@@ -7,18 +7,29 @@ with open("data/games.csv", encoding="utf-8-sig", newline="") as file:
 position = headings.index("DiscountDLC count")
 headings[position:position + 1] = ["Discount", "DLC count"]
 
+columns = ["AppID", "Name", "Price", "Genres", "Positive", "Negative"]
+
 games = pd.read_csv(
     "data/games.csv",
     header=0,
     names=headings,
-    nrows=5
+    usecols=columns
 )
 
-print("Corrected heading count:", len(headings))
+print("MISSING VALUES:")
+print(games.isna().sum())
 
-selected_columns = [
-    "AppID", "Name", "Release date", "Price",
-    "Discount", "DLC count", "Genres"
-]
+print()
+print("Duplicate game IDs:", games["AppID"].duplicated().sum())
 
-print(games[selected_columns].to_string(index=False))
+print()
+print("NUMERIC CHECKS:")
+
+for column in ["Price", "Positive", "Negative"]:
+    numbers = pd.to_numeric(games[column], errors="coerce")
+
+    invalid = games[column].notna() & numbers.isna()
+
+    print(column)
+    print("  Non-numeric values:", invalid.sum())
+    print("  Negative values:", (numbers < 0).sum())
