@@ -1,4 +1,4 @@
-# Find My Next Game (University Project)
+# Find My Next Game
 
 A Steam game recommendation app built for the **Artificial Intelligence and Data Analytics** course.
 
