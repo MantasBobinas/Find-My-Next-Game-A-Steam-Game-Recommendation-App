@@ -1,3 +1,5 @@
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
 import csv
 import pandas as pd
 import streamlit as st
@@ -13,8 +15,12 @@ def load_games():
     position = headings.index("DiscountDLC count")
     headings[position:position + 1] = ["Discount", "DLC count"]
 
+
+
+
     needed_columns = [
-        "AppID", "Name", "Price", "Genres", "Positive", "Negative"
+        "AppID", "Name", "Price", "Genres", "Positive", "Negative",
+        "About the game", "Tags"
     ]
 
     data = pd.read_csv(
@@ -25,12 +31,30 @@ def load_games():
     )
 
     data = data.dropna(subset=["Name"]).copy()
+    data = data.reset_index(drop=True)
+
+    data["Search text"] = (
+        data["Genres"].fillna("") + " "
+        + data["Tags"].fillna("") + " "
+        + data["About the game"].fillna("")
+    )
 
     return data
 
-
+@st.cache_resource
+def build_search_index(texts):
+    vectorizer = TfidfVectorizer(
+        stop_words="english",
+        max_features=20000
+    )
+    game_vectors = vectorizer.fit_transform(texts)
+    return vectorizer, game_vectors
 games = load_games()
 st.write("Games available after cleaning:", len(games))
+query = st.text_input(
+    "Describe the game you want",
+    placeholder="For example: relaxing farming crafting"
+).strip()
 
 genre_lists = games["Genres"].fillna("").str.split(",")
 
@@ -94,15 +118,36 @@ min_reviews = st.number_input(
 filtered_games = filtered_games[
     filtered_games["Total reviews"] >= min_reviews
 ]
-recommendations = filtered_games.sort_values(
-    by="Total reviews",
-    ascending=False
-).head(5)
+if query:
+    vectorizer, game_vectors = build_search_index(games["Search text"])
+    query_vector = vectorizer.transform([query])
+
+    scores = cosine_similarity(query_vector, game_vectors).ravel()
+
+    filtered_games = filtered_games.copy()
+    filtered_games["Text similarity"] = scores[filtered_games.index]
+    filtered_games = filtered_games[
+        filtered_games["Text similarity"] > 0
+    ]
+
+    recommendations = filtered_games.sort_values(
+        by=["Text similarity", "Total reviews"],
+        ascending=[False, False]
+    ).head(5)
+else:
+    recommendations = filtered_games.sort_values(
+        by="Total reviews",
+        ascending=False
+    ).head(5)
 
 st.write("Games matching your filters:", len(filtered_games))
 
 if recommendations.empty:
-    st.info("No matches found. Try another genre, a higher budget, or lower review requirements.")
+    st.caption(
+    "With search text: ranked by word similarity, then review count. "
+    "Without search text: ranked by review count. "
+    "Prices are in USD from the dataset snapshot and may differ from current Steam prices."
+)
 else:
     st.subheader("Your game recommendations")
 
@@ -131,6 +176,7 @@ else:
     )
 
 st.caption(
-    "Ranked by total review count. Prices are in USD from the "
-    "dataset snapshot and may differ from current Steam prices."
+    "With search text: ranked by word similarity, then review count. "
+    "Without search text: ranked by review count. "
+    "Prices are in USD from the dataset snapshot and may differ from current Steam prices."
 )
