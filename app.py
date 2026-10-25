@@ -102,17 +102,32 @@ recommendations = filtered_games.sort_values(
 st.write("Games matching your filters:", len(filtered_games))
 
 if recommendations.empty:
-    st.info("No matches found. Try another genre or a higher budget.")
+    st.info("No matches found. Try another genre, a higher budget, or lower review requirements.")
 else:
     st.subheader("Your game recommendations")
 
+    recommendations = recommendations.copy()
+
+    recommendations["Steam link"] = (
+        "https://store.steampowered.com/app/"
+        + recommendations["AppID"].astype(int).astype(str)
+        + "/"
+    )
+
     display_columns = [
-        "Name", "Price", "Genres", "Total reviews", "Positive reviews (%)"
+        "Name", "Price", "Genres", "Total reviews",
+        "Positive reviews (%)", "Steam link"
     ]
 
     st.dataframe(
         recommendations[display_columns],
-        hide_index=True
+        hide_index=True,
+        column_config={
+            "Steam link": st.column_config.LinkColumn(
+                "Steam store",
+                display_text="Open on Steam"
+            )
+        }
     )
 
 st.caption(
