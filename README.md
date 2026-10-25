@@ -1,228 +1,156 @@
-\# Find My Next Game
+# Find My Next Game (University Project)
 
+A Steam game recommendation app built for the **Artificial Intelligence and Data Analytics** course.
 
+Describe the game you want, choose your preferences, and discover matching games from a dataset of over **125,000 Steam titles**.
 
-A Python application that recommends Steam games based on a written
+Built with **Python**, **pandas**, **Streamlit**, and **scikit-learn**.
 
-description, genre, budget, and review preferences.
+## What It Does
 
+- Searches game descriptions, tags, and genres using TF-IDF and cosine similarity.
+- Filters games by genre and maximum price in USD.
+- Supports minimum positive-review percentages and review counts.
+- Displays up to five recommendations with review information.
+- Provides clickable links to each game's Steam store page.
+- Caches loaded data and the search index for reuse between interactions.
 
+## Project Structure
 
-Built for the Artificial Intelligence and Data Analytics course.
+- `app.py`: Streamlit interface, data preparation, filters, and recommendations.
+- `check_csv.py`: validates field counts across the entire dataset.
+- `inspect_data.py`: checks missing values, duplicate IDs, and numeric fields.
+- `inspect_text.py`: previews descriptions and tags from a small sample.
+- `search_demo.py`: standalone text-search experiment using 5,000 records.
+- `requirements.txt`: installed Python package versions.
+- `.gitignore`: excludes local datasets and the virtual environment.
+- `data/games.csv`: downloaded dataset, stored locally and excluded from Git.
 
+## Setup (Windows Command Prompt)
 
+### 1. Download the project
 
-\## Features
+```bat
+git clone https://github.com/MantasBobinas/Find-My-Next-Game-A-Steam-Game-Recommendation-App.git
+cd Find-My-Next-Game-A-Steam-Game-Recommendation-App
+```
 
+### 2. Create and activate a virtual environment
 
+```bat
+py -m venv .venv
+.venv\Scripts\activate.bat
+```
 
-\- Search using phrases such as "relaxing farming crafting".
+The project was developed using **Python 3.15.1**.
 
-\- Filter by genre and maximum price in USD.
+### 3. Install dependencies
 
-\- Set minimum positive-review percentage and total review count.
+```bat
+python -m pip install -r requirements.txt
+```
 
-\- View up to five recommendations with Steam store links.
+### 4. Add the dataset
 
+Download the [FronkonGames Steam Games Dataset](https://www.kaggle.com/datasets/fronkongames/steam-games-dataset) and extract the archive.
 
+Create the local data folder:
 
-\## Tools and reasons for choosing them
+```bat
+mkdir data
+```
 
+Copy `games.csv` into it. The expected location is `data/games.csv`.
 
+The dataset is not included in this repository.
 
-\- Python: data preparation and recommendation logic.
+## Run
 
-\- pandas: loading, inspecting, and filtering tabular data.
+With the virtual environment active, launch the app:
 
-\- Streamlit: building an interactive interface using Python.
+```bat
+python -m streamlit run app.py
+```
 
-\- scikit-learn: TF-IDF text representation and cosine similarity.
+Open the Local URL printed in the terminal if the browser does not open automatically.
 
-\- Git and GitHub: version history and project documentation.
+Keep the terminal open while using the app. Press **Ctrl + C** to stop it.
 
+## How to Use
 
+1. Optionally describe a game, such as `relaxing farming crafting`.
+2. Choose a genre or leave **All genres** selected.
+3. Set a maximum price in USD.
+4. Choose minimum positive-review percentage and review count.
+5. Review the recommendations and select **Open on Steam**.
 
-TF-IDF provides an explainable starting point for text recommendations
+Leave the description blank to discover matching games ranked by review count.
 
-without requiring a paid API or a large language model.
+## Recommendation Method
 
+### With a written request
 
+The app combines each game's genres, tags, and description into searchable text.
 
-\## Dataset
+**TF-IDF** represents that text using weighted words, with English stop words removed and a vocabulary limited to 20,000 terms. **Cosine similarity** compares the request with each game.
 
+Games must satisfy the selected filters and have a non-zero text similarity. Results are ranked by similarity, with total review count used to break ties.
 
+### Without a written request
 
-Source: FronkonGames Steam Games Dataset
+Games are filtered by the selected preferences and ranked by total review count.
 
-https://www.kaggle.com/datasets/fronkongames/steam-games-dataset
+### Review information
 
+- **Total reviews:** positive reviews plus negative reviews.
+- **Positive-review percentage:** positive reviews divided by total reviews, multiplied by 100.
+- Games without reviews have an unavailable positive-review percentage.
+- Percentage filtering uses values rounded to one decimal place.
 
+## Data Quality and Cleaning
 
-The local dataset contains 125,855 records.
+The inspected dataset contains **125,855 records**.
 
-After excluding one record with a missing name, 125,854 remain.
+The original CSV has a joined heading, `DiscountDLC count`. The loading code separates it into `Discount` and `DLC count`, producing 40 headings that match the 40 fields in every record.
 
+Checks found:
 
+- **1 missing game name:** excluded, leaving **125,854 games**.
+- **8,423 missing genres:** retained under **All genres**.
+- **0 duplicate AppIDs**.
+- **0 missing prices or review counts**.
+- **0 non-numeric or negative prices or review counts**.
 
-The CSV is not included in this repository. Download and extract the
+Missing text fields are treated as empty text. The original CSV is not modified.
 
-dataset, create a folder named `data`, and place `games.csv` inside it.
+Run the data checks with:
 
+```bat
+python check_csv.py
+python inspect_data.py
+```
 
+## Why These Tools
 
-Prices are in USD and reflect the dataset snapshot, not live Steam prices.
+- **pandas:** practical tools for inspecting and filtering tabular data.
+- **Streamlit:** an interactive browser interface built directly in Python.
+- **scikit-learn:** established tools for an explainable text-matching baseline.
+- **Git and GitHub:** version history, documentation, and reproducible setup instructions.
 
+The recommendation method runs locally without a paid AI API.
 
+## Limitations
 
-\## Data checks and cleaning
+- TF-IDF matches vocabulary rather than fully understanding meaning.
+- Synonyms and negative requests such as “no combat” may be handled poorly.
+- Similarity scores are not probabilities of enjoying a game.
+- Missing descriptions or tags can reduce recommendation quality.
+- Prices reflect the dataset snapshot and may differ from current Steam prices.
+- Review volume measures attention; it does not guarantee quality.
+- The dataset version and download date still need to be recorded for more precise reproduction.
 
+## Evaluation Status
 
+Initial manual checks covered farming simulation and civilization-building searches, preference filters, and a Steam store link.
 
-The downloaded CSV has 39 headings but 40 fields per record.
-
-The heading `DiscountDLC count` combines two column names.
-
-The loading code separates it into `Discount` and `DLC count`
-
-without modifying the original CSV.
-
-
-
-Checks on this dataset found:
-
-
-
-\- All 125,855 records contain 40 fields.
-
-\- One record has a missing name; it is excluded.
-
-\- 8,423 records have missing genres.
-
-\- No duplicate AppIDs.
-
-\- No missing, non-numeric, or negative prices or review counts.
-
-
-
-Games with missing genres remain eligible under "All genres".
-
-Missing descriptions and tags are treated as empty text.
-
-Games without reviews have an unavailable positive-review percentage.
-
-
-
-\## How recommendations work
-
-
-
-The app applies genre, budget, and review requirements.
-
-
-
-With no search text, matching games are ranked by total review count.
-
-
-
-With search text, the app:
-
-
-
-1\. Combines each game's genres, tags, and description.
-
-2\. Uses TF-IDF with English stop words and a maximum vocabulary
-
-&#x20;  of 20,000 terms.
-
-3\. Represents the user's request using the same vocabulary.
-
-4\. Calculates cosine similarity between the request and each game.
-
-5\. Excludes zero-similarity matches and ranks eligible games by
-
-&#x20;  similarity, using review count to break ties.
-
-
-
-At most five games are displayed. Similarity scores are not
-
-probabilities that a user will enjoy a game.
-
-
-
-\## Run locally on Windows
-
-
-
-1\. Install Python and Git.
-
-2\. Clone this repository and open Command Prompt in its folder.
-
-3\. Run `py -m venv .venv`.
-
-4\. Run `.venv\\Scripts\\activate.bat`.
-
-5\. Run `python -m pip install -r requirements.txt`.
-
-6\. Place the dataset at `data/games.csv`.
-
-7\. Run `python -m streamlit run app.py`.
-
-
-
-The current development environment uses Python 3.15.1.
-
-Installed dependency versions are recorded in `requirements.txt`.
-
-
-
-\## Project files
-
-
-
-\- `app.py`: interactive recommendation application.
-
-\- `check\_csv.py`: checks field counts throughout the CSV.
-
-\- `inspect\_data.py`: checks missing values, duplicate IDs, and numbers.
-
-\- `inspect\_text.py`: inspects descriptions and tags in a small sample.
-
-\- `search\_demo.py`: tests text matching on the first 5,000 records.
-
-\- `requirements.txt`: installed Python package versions.
-
-\- `.gitignore`: excludes local data and the virtual environment.
-
-
-
-\## Limitations and evaluation
-
-
-
-TF-IDF matches vocabulary rather than fully understanding meaning.
-
-It may miss synonyms or misunderstand requests such as "no combat".
-
-Missing metadata can reduce recommendation quality.
-
-
-
-Positive-review percentages are rounded to one decimal place before
-
-filtering. A minimum review count does not guarantee reliable ratings.
-
-
-
-Initial manual searches included farming simulation and civilization
-
-building. These were informal checks; systematic evaluation is still
-
-to be completed.
-
-
-
-The dataset snapshot version and download date should be recorded
-
-to make reproduction more precise.
-
+These checks confirm initial functionality. A systematic relevance evaluation and comparison with the review-count baseline are still planned.
