@@ -150,3 +150,7 @@ The recommendation method runs locally without a paid AI API.
 Initial manual checks covered farming simulation and civilization-building searches, preference filters, and a Steam store link.
 
 These checks confirm initial functionality. A systematic relevance evaluation and comparison with the review-count baseline are still planned.
+
+## Video demonstration
+
+[Watch the app demonstration](https://drive.google.com/file/d/1_Bd843wLmqvFBG-VFI0Gmks3GQeag09E/view?usp=sharing)
