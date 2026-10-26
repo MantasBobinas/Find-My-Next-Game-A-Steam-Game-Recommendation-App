@@ -18,10 +18,6 @@ Built with **Python**, **pandas**, **Streamlit**, and **scikit-learn**.
 ## Project Structure
 
 - `app.py`: Streamlit interface, data preparation, filters, and recommendations.
-- `check_csv.py`: validates field counts across the entire dataset.
-- `inspect_data.py`: checks missing values, duplicate IDs, and numeric fields.
-- `inspect_text.py`: previews descriptions and tags from a small sample.
-- `search_demo.py`: standalone text-search experiment using 5,000 records.
 - `requirements.txt`: installed Python package versions.
 - `.gitignore`: excludes local datasets and the virtual environment.
 - `data/games.csv`: downloaded dataset, stored locally and excluded from Git.
